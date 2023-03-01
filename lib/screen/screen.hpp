@@ -47,6 +47,7 @@ class Screen {
         bool fourSOutputIsEnabled;
         bool hasChanged;
         unsigned long lastTick;
+        GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT> *display;
 
         void initaliseScreen();
         void initVariables();

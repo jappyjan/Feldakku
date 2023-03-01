@@ -9,24 +9,21 @@
 
 #include "screen.hpp"
 
-GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT> display(GxEPD2_213_Z98c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
-
 // default constructor
 Screen::Screen() {
 } //Screen
 
 void Screen::initaliseScreen() {
-    display.init(115200, true, 2, false);
-    //// display.init(); for older Waveshare HAT's
+    this->display->init(115200, true, 2, false);
+    //// this->display->init(); for older Waveshare HAT's
     SPI.end();
     SPI.begin(EPD_SCK, EPD_MISO, EPD_MOSI, EPD_CS);
-    display.setRotation(0);
-    display.setTextSize(1);
-    display.setFont(&DejaVu_Sans_Bold_11);
-    display.setTextColor(GxEPD_BLACK);
-    display.fillScreen(GxEPD_WHITE);
-    display.setFullWindow();
-    display.setTextWrap(false);
+    this->display->setRotation(0);
+    this->display->setTextSize(1);
+    this->display->setFont(&DejaVu_Sans_Bold_11);
+    this->display->setTextColor(GxEPD_BLACK);
+    this->display->setFullWindow();
+    this->display->setTextWrap(false);
 }
 
 void Screen::initVariables() {
@@ -42,6 +39,7 @@ void Screen::initVariables() {
 }
 
 void Screen::begin() {
+    this->display = new GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT>(GxEPD2_213_Z98c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
     this->initVariables();
     this->initaliseScreen();
 }
@@ -55,15 +53,15 @@ void Screen::drawString(
 ) {
     int16_t  x1, y1;
     uint16_t w, h;
-    display.getTextBounds(text, x, y, &x1, &y1, &w, &h);
+    this->display->getTextBounds(text, x, y, &x1, &y1, &w, &h);
     if (horizontalAlignment == HRIGHT)  x = x - w;
     if (horizontalAlignment == HCENTER) x = x - w / 2;
 
     if (verticalAlignment == VBOTTOM)  y = y - h;
     if (verticalAlignment == VCENTER) y = y - h / 2;
 
-    display.setCursor(x, y + h);
-    display.print(text);
+    this->display->setCursor(x, y + h);
+    this->display->print(text);
 }
 
 void Screen::drawRow(
@@ -79,7 +77,7 @@ void Screen::drawRow(
         return;
     }
 
-    display.drawLine(
+    this->display->drawLine(
         0,
         row * SCREEN_ROW_HEIGHT,
         SCREEN_WIDTH,
@@ -87,7 +85,7 @@ void Screen::drawRow(
         GxEPD_BLACK
     );
 
-    display.drawLine(
+    this->display->drawLine(
         SCREEN_COLUMN_WIDTH,
         0,
         SCREEN_COLUMN_WIDTH,
@@ -105,7 +103,7 @@ void Screen::drawMenuBox(
     uint8_t x = collumn * SCREEN_COLUMN_WIDTH;
     uint8_t y = row * SCREEN_ROW_HEIGHT;
 
-    display.fillRect(
+    this->display->fillRect(
         x,
         y,
         SCREEN_COLUMN_WIDTH,
@@ -190,15 +188,13 @@ void Screen::drawFourSRow() {
 }
 
 void Screen::updateScreen() {
-    display.fillScreen(GxEPD_BLACK);
-
     this->drawMainRow();
     this->drawChargeRow();
     this->drawDischargeRow();
     this->drawSixSRow();
     this->drawFourSRow();
 
-    display.display(true);
+    this->display->display(true);
     this->hasChanged = false;
 }
 
