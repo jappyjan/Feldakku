@@ -4,7 +4,9 @@
 #include <BLEServer.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
+#include <HardwareSerial.h>
 
+HardwareSerial BMSSerial(1);
 Screen screen;
 
 static BLEUUID serviceUUID("0000ff00-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
@@ -19,9 +21,11 @@ class MyBleCallbacks : public BLECharacteristicCallbacks {
     int rxLength = pCharacteristic->getValue().length();
     
 
-    Serial1.write(rxValue, rxLength);
+    BMSSerial.write(rxValue, rxLength);
   }
 };
+
+auto bleCb = MyBleCallbacks();
 
 BLEServer *pServer;
 BLEService *pService;
@@ -31,7 +35,7 @@ BLEAdvertising *pAdvertising;
 
 void setup() {
   Serial.begin(115200);
-  Serial1.begin(9600);
+  BMSSerial.begin(9600, SERIAL_8N1, 9, 10);
 
   BLEDevice::init("ESP-Feldakku");
   pServer = BLEDevice::createServer();
@@ -53,8 +57,7 @@ void setup() {
   BLEDevice::startAdvertising();
 
   // listen for ble messages
-  pCharacteristicRx->setCallbacks(new MyBleCallbacks());
-
+  pCharacteristicRx->setCallbacks(&bleCb);
   
   screen.begin();
   screen.setBatteryVoltage(6*4.12);
@@ -65,19 +68,31 @@ void setup() {
   screen.setDischargeCurrent(0.0);
   screen.setSixSIsEnabled(true);
   screen.setFourSOutputIsEnabled(false);
+
+  Serial.println("Setup done");
 }
 
 void loop() {
+  /*
   screen.tick();
 
-  if (Serial1.available()) {
+  if (BMSSerial.available()) {
     // push to ble characteristic
-    pCharacteristicTx->setValue(Serial1.readString().c_str());
+    pCharacteristicTx->setValue(BMSSerial.readString().c_str());
   }
-
-  delay(1000);
+  */
 }
 
+void serialEvent1() {
+  while (BMSSerial.available()) {
+    char inChar = (char)Serial.read();
+    Serial.write(inChar);
+  }
+}
 
-
-
+void serialEvent() {
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    Serial.write(inChar);
+  }
+}
