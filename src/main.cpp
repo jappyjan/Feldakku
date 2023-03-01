@@ -10,8 +10,8 @@ HardwareSerial BMSSerial(1);
 Screen screen;
 
 static BLEUUID serviceUUID("0000ff00-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
-static BLEUUID charUUID_tx("0000ff02-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
-static BLEUUID charUUID_rx("0000ff01-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
+static BLEUUID charUUID_rx("0000ff02-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
+static BLEUUID charUUID_tx("0000ff01-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
 
 // define ble callbacks
 class MyBleCallbacks : public BLECharacteristicCallbacks {
@@ -20,7 +20,9 @@ class MyBleCallbacks : public BLECharacteristicCallbacks {
     // store length of the rxValue
     int rxLength = pCharacteristic->getValue().length();
     
-
+    Serial.print("BLE rxValue: ");
+    Serial.write(rxValue, rxLength);
+    Serial.println();
     BMSSerial.write(rxValue, rxLength);
   }
 };
@@ -34,8 +36,8 @@ BLECharacteristic *pCharacteristicRx;
 BLEAdvertising *pAdvertising;
 
 void setup() {
-  Serial.begin(115200);
-  BMSSerial.begin(9600, SERIAL_8N1, 9, 10);
+  Serial.begin(9600);
+  BMSSerial.begin(9600, SERIAL_8N1, 25, 26);
 
   BLEDevice::init("ESP-Feldakku");
   pServer = BLEDevice::createServer();
@@ -73,26 +75,20 @@ void setup() {
 }
 
 void loop() {
-  /*
-  screen.tick();
+  // screen.tick();
 
-  if (BMSSerial.available()) {
-    // push to ble characteristic
-    pCharacteristicTx->setValue(BMSSerial.readString().c_str());
-  }
-  */
-}
+  if (1 < BMSSerial.available()) {
+    Serial.println("serialEvent bms loop");
+    
+    while(1 < BMSSerial.available()) {
+      byte *buffer;
+      BMSSerial.readBytesUntil(0x77, buffer, 100);
+      Serial.print("message: ");
+      Serial.write(buffer, 100);
+      pCharacteristicTx->setValue(buffer, 100);
+      pCharacteristicTx->notify();
+    }
 
-void serialEvent1() {
-  while (BMSSerial.available()) {
-    char inChar = (char)Serial.read();
-    Serial.write(inChar);
-  }
-}
-
-void serialEvent() {
-  while (Serial.available()) {
-    char inChar = (char)Serial.read();
-    Serial.write(inChar);
+    Serial.println("serialEvent bms loop done");
   }
 }
