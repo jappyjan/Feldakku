@@ -1,14 +1,20 @@
 #include <arduino.h>
+#include <HardwareSerial.h>
+#include <jbdbms.h>
+
 #include "screen.hpp"
 
+/*
 #include <BLEServer.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
-#include <HardwareSerial.h>
+*/
 
-HardwareSerial BMSSerial(1);
+HardwareSerial &BMSSerial = Serial1;
 Screen screen;
+JbdBms bms(BMSSerial);
 
+/*
 static BLEUUID serviceUUID("0000ff00-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
 static BLEUUID charUUID_rx("0000ff02-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
 static BLEUUID charUUID_tx("0000ff01-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
@@ -34,11 +40,14 @@ BLEService *pService;
 BLECharacteristic *pCharacteristicTx;
 BLECharacteristic *pCharacteristicRx;
 BLEAdvertising *pAdvertising;
+*/
 
 void setup() {
   Serial.begin(9600);
   BMSSerial.begin(9600, SERIAL_8N1, 25, 26);
+  bms.begin(-1);
 
+  /*
   BLEDevice::init("ESP-Feldakku");
   pServer = BLEDevice::createServer();
   pService = pServer->createService(serviceUUID);
@@ -60,35 +69,73 @@ void setup() {
 
   // listen for ble messages
   pCharacteristicRx->setCallbacks(&bleCb);
+  */
   
   screen.begin();
-  screen.setBatteryVoltage(6*4.12);
-  screen.setBatteryTemperature(25.0);
-  screen.setChargingIsEnabled(true);
-  screen.setChargeCurrent(11.0);
-  screen.setDischargingIsEnabled(false);
-  screen.setDischargeCurrent(0.0);
   screen.setSixSIsEnabled(true);
   screen.setFourSOutputIsEnabled(false);
 
   Serial.println("Setup done");
 }
 
-void loop() {
-  // screen.tick();
-
-  if (1 < BMSSerial.available()) {
-    Serial.println("serialEvent bms loop");
-    
-    while(1 < BMSSerial.available()) {
-      byte *buffer;
-      BMSSerial.readBytesUntil(0x77, buffer, 100);
-      Serial.print("message: ");
-      Serial.write(buffer, 100);
-      pCharacteristicTx->setValue(buffer, 100);
-      pCharacteristicTx->notify();
-    }
-
-    Serial.println("serialEvent bms loop done");
+unsigned long lastBmsTick = 0;
+inline void bmsTick() {
+  if (millis() - lastBmsTick < 10000) {
+    return;
   }
+
+  lastBmsTick = millis();
+  JbdBms::Status status;
+  if (!bms.getStatus(status)) {
+    return;
+  }
+
+  screen.setBatteryVoltage(status.voltage / 100.0);
+  screen.setBatteryVoltageWarning(status.currentCapacity < 20);
+
+  float temperature = JbdBms::deciCelsius(status.temperatures[0]) / 10.0;
+  screen.setBatteryTemperature(temperature);
+  screen.setBatteryTemperatureWarning(temperature > 40 || temperature < 5);
+
+  float chargeCurrent = 0;
+  float dischargeCurrent = 0;
+  if (status.current > 0) {
+    chargeCurrent = status.current / 100.0;
+    dischargeCurrent = 0;
+  } else {
+    chargeCurrent = 0;
+    dischargeCurrent = -status.current / 100.0;
+  }
+
+  screen.setChargeCurrent(chargeCurrent);
+  screen.setDischargeCurrent(dischargeCurrent);
+
+  switch(status.mosfetStatus) {
+    case JbdBms::mosfet::MOSFET_CHARGE:
+      screen.setChargingIsEnabled(true);
+      screen.setDischargingIsEnabled(false);
+      break;
+    case JbdBms::mosfet::MOSFET_DISCHARGE:
+      screen.setChargingIsEnabled(false);
+      screen.setDischargingIsEnabled(true);
+      break;
+    case JbdBms::mosfet::MOSFET_BOTH:
+      screen.setChargingIsEnabled(true);
+      screen.setDischargingIsEnabled(true);
+      break;
+    case JbdBms::mosfet::MOSFET_NONE:
+      screen.setChargingIsEnabled(false);
+      screen.setDischargingIsEnabled(false);
+      break;
+  }
+}
+
+void loop() {
+  bmsTick();
+  screen.tick();
+
+  /*
+  pCharacteristicTx->setValue(message.c_str());
+  pCharacteristicTx->notify();
+  */
 }

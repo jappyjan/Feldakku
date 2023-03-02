@@ -28,9 +28,11 @@ void Screen::initaliseScreen() {
 
 void Screen::initVariables() {
     this->batteryVoltage = 0.0;
+    this->batteryVoltageWarning = false;
     this->hasChanged = true;
     this->lastTick = 0;
     this->batteryTemperature = 0.0;
+    this->batteryTemperatureWarning = false;
     this->chargingIsEnabled = false;
     this->chargeCurrent = 0.0;
     this->dischargingIsEnabled = false;
@@ -68,10 +70,12 @@ void Screen::drawRow(
     uint8_t row,
     String label,
     String valueRowOne,
-    String valueRowTwo
+    String valueRowTwo,
+    bool warningRowOne,
+    bool warningRowTwo
 ) {
     this->drawMenuBox(row, 0, label);
-    this->drawMenuBox(row, 1, valueRowOne, valueRowTwo);
+    this->drawMenuBox(row, 1, valueRowOne, valueRowTwo, warningRowOne, warningRowTwo);
 
     if (row == 0) {
         return;
@@ -98,7 +102,9 @@ void Screen::drawMenuBox(
     uint8_t row,
     uint8_t collumn,
     String textRowOne,
-    String textRowTwo
+    String textRowTwo,
+    bool warningRowOne,
+    bool warningRowTwo
 ) {
     uint8_t x = collumn * SCREEN_COLUMN_WIDTH;
     uint8_t y = row * SCREEN_ROW_HEIGHT;
@@ -110,6 +116,26 @@ void Screen::drawMenuBox(
         SCREEN_ROW_HEIGHT,
         GxEPD_WHITE
     );
+
+    if (warningRowOne) {
+        this->display->fillRect(
+            x,
+            y,
+            SCREEN_COLUMN_WIDTH,
+            SCREEN_ROW_HEIGHT / 2,
+            GxEPD_RED
+        );
+    }
+
+    if (warningRowTwo) {
+        this->display->fillRect(
+            x,
+            y + SCREEN_ROW_HEIGHT / 2,
+            SCREEN_COLUMN_WIDTH,
+            SCREEN_ROW_HEIGHT / 2,
+            GxEPD_RED
+        );
+    }
 
     if (textRowTwo.length() == 0) {
          this->drawString(
@@ -140,7 +166,14 @@ void Screen::drawMenuBox(
 }
 
 void Screen::drawMainRow() {
-    this->drawRow(0, "State", String(this->batteryVoltage) + "V", String(this->batteryTemperature) + "°C");
+    this->drawRow(
+        0,
+        "State",
+        String(this->batteryVoltage) + "V",
+        String(this->batteryTemperature) + "°C",
+        this->batteryVoltageWarning,
+        this->batteryTemperatureWarning,
+    );
 }
 
 void Screen::drawChargeRow() {
@@ -219,12 +252,30 @@ void Screen::setBatteryVoltage(float voltage) {
     this->hasChanged = true;
 }
 
+void Screen::setBatteryVoltageWarning(bool batteryVoltageWarning) {
+    if (this->batteryVoltageWarning == batteryVoltageWarning) {
+        return;
+    }
+
+    this->batteryVoltageWarning = batteryVoltageWarning;
+    this->hasChanged = true;
+}
+
 void Screen::setBatteryTemperature(float temperature) {
     if (this->batteryTemperature == temperature) {
         return;
     }
 
     this->batteryTemperature = temperature;
+    this->hasChanged = true;
+}
+
+void Screen::setBatteryTemperatureWarning(bool batteryTemperatureWarning) {
+    if (this->batteryTemperatureWarning == batteryTemperatureWarning) {
+        return;
+    }
+
+    this->batteryTemperatureWarning = batteryTemperatureWarning;
     this->hasChanged = true;
 }
 

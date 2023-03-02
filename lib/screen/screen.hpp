@@ -28,7 +28,9 @@ class Screen {
         void tick();
 
         void setBatteryVoltage(float voltage);
+        void setBatteryVoltageWarning(bool batteryVoltageWarning);
         void setBatteryTemperature(float temperature);
+        void setBatteryTemperatureWarning(bool batteryTemperatureWarning);
         void setChargingIsEnabled(bool chargingIsEnabled);
         void setChargeCurrent(float chargeCurrent);
         void setDischargingIsEnabled(bool dischargingIsEnabled);
@@ -38,7 +40,9 @@ class Screen {
     
     private:
         float batteryVoltage;
+        bool batteryVoltageWarning;
         float batteryTemperature;
+        bool batteryTemperatureWarning;
         bool chargingIsEnabled;
         float chargeCurrent;
         bool dischargingIsEnabled;
@@ -53,8 +57,8 @@ class Screen {
         void initVariables();
 
         void drawString(int x, int y, String text, HorizontalAlignment align = HLEFT, VerticalAlignment valign = VTOP);
-        void drawMenuBox(uint8_t row, uint8_t collumn, String textRowOne, String textRowTwo = "");
-        void drawRow(uint8_t row, String label, String valueRowOne, String valueRowTwo = "");
+        void drawMenuBox(uint8_t row, uint8_t collumn, String textRowOne, String textRowTwo = "", bool warningRowOne = false, bool warningRowTwo = false);
+        void drawRow(uint8_t row, String label, String valueRowOne, String valueRowTwo = "", bool warningRowOne = false, bool warningRowTwo = false);
 
         void updateScreen();
 
