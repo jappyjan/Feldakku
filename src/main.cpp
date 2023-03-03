@@ -1,20 +1,16 @@
 #include <arduino.h>
 #include <HardwareSerial.h>
 #include <jbdbms.h>
-
-#include "screen.hpp"
-
-/*
 #include <BLEServer.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
-*/
+
+#include "screen.hpp"
 
 HardwareSerial &BMSSerial = Serial1;
 Screen screen;
 JbdBms bms(BMSSerial);
 
-/*
 static BLEUUID serviceUUID("0000ff00-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
 static BLEUUID charUUID_rx("0000ff02-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
 static BLEUUID charUUID_tx("0000ff01-0000-1000-8000-00805f9b34fb"); //xiaoxiang bms original module
@@ -40,14 +36,21 @@ BLEService *pService;
 BLECharacteristic *pCharacteristicTx;
 BLECharacteristic *pCharacteristicRx;
 BLEAdvertising *pAdvertising;
-*/
+
+// define serial callback serial_cb_t
+void serial_cb(const uint8_t *data, const size_t length) {
+  Serial.print("Serial rxValue: ");
+  Serial.write(data, length);
+  Serial.println();
+  pCharacteristicTx->setValue(const_cast<uint8_t*>(data), length);
+  pCharacteristicTx->notify();
+}
 
 void setup() {
   Serial.begin(9600);
   BMSSerial.begin(9600, SERIAL_8N1, 25, 26);
   bms.begin(-1);
 
-  /*
   BLEDevice::init("ESP-Feldakku");
   pServer = BLEDevice::createServer();
   pService = pServer->createService(serviceUUID);
@@ -69,8 +72,9 @@ void setup() {
 
   // listen for ble messages
   pCharacteristicRx->setCallbacks(&bleCb);
-  */
-  
+
+  bms.setSerialCb(serial_cb);
+
   screen.begin();
   screen.setSixSIsEnabled(true);
   screen.setFourSOutputIsEnabled(false);
@@ -133,9 +137,4 @@ inline void bmsTick() {
 void loop() {
   bmsTick();
   screen.tick();
-
-  /*
-  pCharacteristicTx->setValue(message.c_str());
-  pCharacteristicTx->notify();
-  */
 }

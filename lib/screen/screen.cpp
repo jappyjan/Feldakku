@@ -172,7 +172,7 @@ void Screen::drawMainRow() {
         String(this->batteryVoltage) + "V",
         String(this->batteryTemperature) + "°C",
         this->batteryVoltageWarning,
-        this->batteryTemperatureWarning,
+        this->batteryTemperatureWarning
     );
 }
 
