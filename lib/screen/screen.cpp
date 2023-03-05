@@ -13,6 +13,8 @@
 Screen::Screen() {
 } //Screen
 
+BMSError wtf = BMSError::NO_ERROR;
+
 void Screen::initaliseScreen() {
     this->display->init(115200, true, 2, false);
     //// this->display->init(); for older Waveshare HAT's
@@ -38,12 +40,15 @@ void Screen::initVariables() {
     this->dischargingIsEnabled = false;
     this->dischargeCurrent = 0.0;
     this->sixSIsEnabled = false;
+    this->bmsError = BMSError::NO_ERROR;
 }
 
 void Screen::begin() {
+    Serial.println("Screen begin");
     this->display = new GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT>(GxEPD2_213_Z98c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
     this->initVariables();
     this->initaliseScreen();
+    Serial.println("Screen initialised");
 }
 
 void Screen::drawString(
@@ -221,35 +226,73 @@ void Screen::drawFourSRow() {
 }
 
 void Screen::updateScreen() {
+    Serial.println("Updating screen");
+    this->hasChanged = false;
+    Serial.println("hasChanged = false -> Screen::updateScreen");
+
+    Serial.print("BMS Error is: ");
+    Serial.println(wtf);
+    if (wtf != BMSError::NO_ERROR) {
+        Serial.println("Drawing error screen");
+        this->display->fillScreen(GxEPD_RED);
+        this->display->setTextColor(GxEPD_WHITE);
+        this->display->setTextWrap(true);
+        this->drawString(
+            SCREEN_WIDTH / 2,
+            SCREEN_HEIGHT / 2,
+            "BMS ERROR: " + wtf,
+            HorizontalAlignment::HCENTER,
+            VerticalAlignment::VCENTER
+        );
+        // this->display->display();
+        return;
+    }
+
+    Serial.println("Drawing normal screen");
     this->drawMainRow();
     this->drawChargeRow();
     this->drawDischargeRow();
     this->drawSixSRow();
     this->drawFourSRow();
 
-    this->display->display(true);
-    this->hasChanged = false;
+    // this->display->display();
 }
 
+bool didLogChange = false;
 void Screen::tick() {
+    /*
     if (!this->hasChanged) {
+        if (!didLogChange) {
+            didLogChange = true;
+            Serial.println("Screen has not changed");
+        }
         return;
     }
+
+    didLogChange = false;
 
     if (this->lastTick + 5000 > millis()) {
+        Serial.print("Screen has not changed for 5 seconds. Last tick was ");
+        Serial.print((millis() - this->lastTick) / 1000);
+        Serial.println(" seconds ago");
         return;
     }
 
+    Serial.println("Screen has changed");
+*/
     this->updateScreen();
 }
 
 void Screen::setBatteryVoltage(float voltage) {
     if (this->batteryVoltage == voltage) {
+        Serial.println("Battery voltage has not changed");
         return;
     }
 
     this->batteryVoltage = voltage;
     this->hasChanged = true;
+
+    Serial.println("hasChanged = true -> Screen::setBatteryVoltage");
 }
 
 void Screen::setBatteryVoltageWarning(bool batteryVoltageWarning) {
@@ -330,5 +373,29 @@ void Screen::setFourSOutputIsEnabled(bool fourSOutputIsEnabled) {
     }
 
     this->fourSOutputIsEnabled = fourSOutputIsEnabled;
+    this->hasChanged = true;
+}
+
+void Screen::setBMSError(BMSError error) {
+    if (wtf == error) {
+        Serial.println("BMS Error has not changed");
+        Serial.print("Current BMS Error is: ");
+        Serial.println(wtf);
+        Serial.print("New BMS Error is: ");
+        Serial.println(error);
+        return;
+    }
+
+    Serial.println("BMS Error has changed");
+    Serial.print("Current BMS Error is: ");
+    Serial.println(wtf);
+    Serial.print("New BMS Error is: ");
+    Serial.println(error);
+
+    wtf = error;
+
+    Serial.print("Updated BMS Error is: ");
+    Serial.println(wtf);
+
     this->hasChanged = true;
 }

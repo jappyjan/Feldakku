@@ -20,6 +20,10 @@ static const uint8_t SCREEN_COLUMN_WIDTH = SCREEN_WIDTH / SCREEN_COLUMNS;
 
 enum HorizontalAlignment {HLEFT, HCENTER, HRIGHT};
 enum VerticalAlignment {VTOP, VCENTER, VBOTTOM};
+enum BMSError {
+    NO_ERROR = 0,
+    COMMUNICATION_ERROR = 1,
+};
 
 class Screen {
     public:
@@ -37,6 +41,7 @@ class Screen {
         void setDischargeCurrent(float dischargeCurrent);
         void setSixSIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
+        void setBMSError(BMSError error);
     
     private:
         float batteryVoltage;
@@ -52,6 +57,7 @@ class Screen {
         bool hasChanged;
         unsigned long lastTick;
         GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT> *display;
+        uint8_t bmsError;
 
         void initaliseScreen();
         void initVariables();
@@ -67,4 +73,5 @@ class Screen {
         void drawDischargeRow();
         void drawSixSRow();
         void drawFourSRow();
+        void drawError();
 };
