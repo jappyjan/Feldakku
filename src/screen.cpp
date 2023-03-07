@@ -199,13 +199,20 @@ void Screen::drawChargeRow() {
         state.concat("OFF");
     }
 
+    uint16_t bgColor = GxEPD_WHITE;
+    if (this->chargeOvercurrentWarning) {
+        bgColor = GxEPD_RED;
+    } else if (this->chargingIsEnabled) {
+        bgColor = GxEPD_BLACK;
+    }
+
     this->drawRow(
         1,
         "IN",
         state,
         String(this->chargeCurrent, 1) + "A",
-        this->chargingIsEnabled ? GxEPD_BLACK : GxEPD_WHITE,
-        this->chargingIsEnabled ? GxEPD_BLACK : GxEPD_WHITE
+        bgColor,
+        bgColor
     );
 }
 
@@ -217,13 +224,20 @@ void Screen::drawDischargeRow() {
         state.concat("OFF");
     }
 
+    uint16_t bgColor = GxEPD_WHITE;
+    if (this->dischargeOvercurrentWarning) {
+        bgColor = GxEPD_RED;
+    } else if (this->dischargingIsEnabled) {
+        bgColor = GxEPD_BLACK;
+    }
+
     this->drawRow(
         2,
         "OUT",
         state,
         String(this->dischargeCurrent, 1) + "A",
-        this->dischargingIsEnabled ? GxEPD_BLACK : GxEPD_WHITE,
-        this->dischargingIsEnabled ? GxEPD_BLACK : GxEPD_WHITE
+        bgColor,
+        bgColor
     );
 }
 
@@ -411,6 +425,18 @@ void Screen::setChargeCurrent(float chargeCurrent) {
     }
 }
 
+void Screen::setChargeOvercurrentWarning(bool chargeOvercurrentWarning) {
+    if (this->chargeOvercurrentWarning == chargeOvercurrentWarning) {
+        return;
+    }
+
+    this->chargeOvercurrentWarning = chargeOvercurrentWarning;
+    if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
+        Serial.println("Screen::setChargeOvercurrentWarning() - needs redraw");
+        this->needsRedraw = true;
+    }
+}
+
 void Screen::setDischargingIsEnabled(bool dischargingIsEnabled) {
     if (this->dischargingIsEnabled == dischargingIsEnabled) {
         return;
@@ -431,6 +457,18 @@ void Screen::setDischargeCurrent(float dischargeCurrent) {
     this->dischargeCurrent = dischargeCurrent;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
         Serial.println("Screen::setDischargeCurrent() - needs redraw");
+        this->needsRedraw = true;
+    }
+}
+
+void Screen::setDischargeOvercurrentWarning(bool dischargeOvercurrentWarning) {
+    if (this->dischargeOvercurrentWarning == dischargeOvercurrentWarning) {
+        return;
+    }
+
+    this->dischargeOvercurrentWarning = dischargeOvercurrentWarning;
+    if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
+        Serial.println("Screen::setDischargeOvercurrentWarning() - needs redraw");
         this->needsRedraw = true;
     }
 }

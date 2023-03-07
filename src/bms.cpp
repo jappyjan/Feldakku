@@ -23,11 +23,27 @@ bool BMS::fetchState() {
   int voltageWithOneDecimalPlace = status.voltage / 10;
   float voltage = voltageWithOneDecimalPlace / 10.0;
   this->_screen->setBatteryVoltage(voltage);
-  this->_screen->setBatteryVoltageWarning(status.currentCapacity < 20);
+
+  bool hasVoltageWarning = false;
+  if (this->_bms->isOvervoltage(status.fault)) {
+    hasVoltageWarning = true;
+  }
+  if (this->_bms->isUndervoltage(status.fault)) {
+    hasVoltageWarning = true;
+  }
+  this->_screen->setBatteryVoltageWarning(hasVoltageWarning);
 
   float temperature = JbdBms::deciCelsius(status.temperatures[0]) / 10.0;
   this->_screen->setBatteryTemperature(temperature);
-  this->_screen->setBatteryTemperatureWarning(temperature > 40 || temperature < 5);
+
+  bool hasTemperatureWarning = false;
+  if (this->_bms->isChargeOvertemperature(status.fault)) {
+    hasTemperatureWarning = true;
+  }
+  if (this->_bms->isDischargeOvertemperature(status.fault)) {
+    hasTemperatureWarning = true;
+  }
+  this->_screen->setBatteryTemperatureWarning(hasTemperatureWarning);
 
   float chargeCurrent = 0;
   float dischargeCurrent = 0;
@@ -40,7 +56,10 @@ bool BMS::fetchState() {
   }
 
   this->_screen->setChargeCurrent(chargeCurrent);
+  this->_screen->setChargeOvercurrentWarning(this->_bms->isChargeOvercurrent(status.fault));
+
   this->_screen->setDischargeCurrent(dischargeCurrent);
+  this->_screen->setDischargeOvercurrentWarning(this->_bms->isDischargeOvercurrent(status.fault));
 
   this->lastMosfetState = (JbdBms::mosfet)status.mosfetStatus;
   switch(status.mosfetStatus) {

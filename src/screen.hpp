@@ -49,8 +49,10 @@ class Screen {
         void setBatteryTemperatureWarning(bool batteryTemperatureWarning);
         void setChargingIsEnabled(bool chargingIsEnabled);
         void setChargeCurrent(float chargeCurrent);
+        void setChargeOvercurrentWarning(bool chargeOvercurrentWarning);
         void setDischargingIsEnabled(bool dischargingIsEnabled);
         void setDischargeCurrent(float dischargeCurrent);
+        void setDischargeOvercurrentWarning(bool dischargeOvercurrentWarning);
         void setSixSIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
     
@@ -61,8 +63,10 @@ class Screen {
         bool batteryTemperatureWarning;
         bool chargingIsEnabled;
         float chargeCurrent;
+        bool chargeOvercurrentWarning;
         bool dischargingIsEnabled;
         float dischargeCurrent;
+        bool dischargeOvercurrentWarning;
         bool sixSIsEnabled;
         bool fourSOutputIsEnabled;
         ScreenLayout screenLayout;
