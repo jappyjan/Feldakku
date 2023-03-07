@@ -3,6 +3,7 @@
 #include <GxEPD2_3C.h>
 #include <pgmspace.h>
 #include <bluefairy.h>
+#include "bms-state.hpp"
 
 static const uint8_t EPD_BUSY = 4;  // to EPD BUSY
 static const uint8_t EPD_CS   = 5;  // to EPD CS
@@ -34,14 +35,7 @@ class Screen {
         void loop();
 
         void openMainScreen();
-        void openPopup(
-            String lineOne,
-            String lineTwo = "",
-            String lineThree = "",
-            uint16_t textColour = GxEPD_BLACK,
-            uint16_t backgroundColour = GxEPD_WHITE,
-            bool closable = false
-        );
+        void openBMSErrorPopup(BMSState bmsState);
 
         void setBatteryVoltage(float voltage);
         void setBatteryVoltageWarning(bool batteryVoltageWarning);

@@ -6,7 +6,7 @@
 #include "bms.hpp"
 #include "const.hpp"
 #include "main.state.hpp"
-#include "error-bms-communication.state.hpp"
+#include "error-bms.state.hpp"
 #include "buttons.hpp"
 
 TaskHandle_t UiTask;
@@ -15,13 +15,14 @@ TaskHandle_t BackendTask;
 Screen screen;
 
 HardwareSerial &BMSSerial = Serial1;
+bluefairy::StateMachine<2> stateMachine;
+
 JbdBms bmsLib(BMSSerial);
 BMS bms(&bmsLib, &screen);
 
-bluefairy::StateMachine<2> stateMachine;
 bluefairy::Scheduler scheduler;
 MainState mainState(&bms, &screen, &stateMachine, &scheduler);
-ErrorBmsCommunicationState errorBmsCommunicationState(&bms, &screen, &stateMachine, &scheduler);
+ErrorBmsState errorBmsState(&bms, &screen, &stateMachine, &scheduler);
 
 inline void setupButtons() {
   pinMode(BTN_1_PIN, INPUT_PULLUP);
@@ -71,7 +72,7 @@ void setup() {
 
   Serial.println("Attaching state machines");                                    
   stateMachine[AppState::MAIN_STATE] = mainState;
-  stateMachine[AppState::ERROR_BMS_COMMUNICATION_STATE] = errorBmsCommunicationState;
+  stateMachine[AppState::ERROR_BMS_STATE] = errorBmsState;
 
   Serial.println("Starting state machine");
   stateMachine.toState(AppState::MAIN_STATE);

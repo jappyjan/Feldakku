@@ -1,6 +1,7 @@
 #include "main.state.hpp"
 #include "const.hpp"
 #include "buttons.hpp"
+#include "bms.hpp"
 
 void MainState::enter(){
     Serial.println("MainState::enter() - Start");
@@ -36,11 +37,10 @@ void MainState::enter(){
 
     // TODO: move scheduler to central instance and call scheduler.loop()
     this->_bmsFetchTask = this->_scheduler->every(BMS_TICK_INTERVAL, [this](){
-        bool ret = this->_bms->fetchState();
-        if (!ret) {
-            Serial.println("MainState::enter() - BMS fetch task - Error (going to error state)");
-            this->_stateMachine->toState(ERROR_BMS_COMMUNICATION_STATE);
-            return;
+        this->_bms->fetchState();
+
+        if(this->_bms->getState() != BMSState::BMS_OK) {
+            this->_stateMachine->toState(AppState::ERROR_BMS_STATE);
         }
     });
 };

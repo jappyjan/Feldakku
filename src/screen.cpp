@@ -8,6 +8,7 @@
 #include "epaper_fonts.h"
 
 #include "screen.hpp"
+#include "bms.hpp"
 
 // default constructor
 Screen::Screen() {
@@ -333,24 +334,35 @@ void Screen::openMainScreen() {
     this->needsRedraw = true;
 }
 
-void Screen::openPopup(
-    String lineOne,
-    String lineTwo,
-    String lineThree,
-    uint16_t textColour,
-    uint16_t backgroundColour,
-    bool closable
-) {
-    this->popupLineOne = lineOne;
-    this->popupLineTwo = lineTwo;
-    this->popupLineThree = lineThree;
-    this->popupTextColour = textColour;
-    this->popupBackgroundColour = backgroundColour;
-    this->popupClosable = closable;
+void Screen::openBMSErrorPopup(BMSState bmsState) {
+    this->popupLineOne = "BMS";
+    
+    switch (bmsState) {
+        case BMSState::BMS_OK:
+            this->popupLineTwo = "OK";
+            break;
+        case BMSState::BMS_ERROR_COMMUNICATION:
+            this->popupLineTwo = "COMMUNICATION";
+            break;
+        case BMSState::BMS_ERROR_SHORT_CIRCUIT:
+            this->popupLineTwo = "SHORT CIRCUIT";
+            break;
+        case BMSState::BMS_ERROR_CELL_OVERVOLTAGE:
+            this->popupLineTwo = "CELL OVERVOLTAGE";
+            break;
+        case BMSState::BMS_ERROR_CELL_UNDERVOLTAGE:
+            this->popupLineTwo = "CELL UNDERVOLTAGE";
+            break;
+    }
+
+    this->popupLineThree = "Error";
+    this->popupTextColour = GxEPD_WHITE;
+    this->popupBackgroundColour = GxEPD_RED;
+    this->popupClosable = false;
 
     this->screenLayout = ScreenLayout::POPUP;
     this->needsRedraw = true;
-    Serial.println("Screen::openPopup()");
+    Serial.println("Screen::openBMSErrorPopup()");
 }
 
 void Screen::setBatteryVoltage(float voltage) {

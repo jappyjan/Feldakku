@@ -2,10 +2,11 @@
 
 #include "basic.state.hpp"
 #include <bluefairy.h>
+#include "bms.hpp"
 
-class ErrorBmsCommunicationState: public BasicState {
+class ErrorBmsState: public BasicState {
     public:
-        ErrorBmsCommunicationState(
+        ErrorBmsState(
             BMS *bms,
             Screen *screen,
             bluefairy::StateMachine<2> *stateMachine,
@@ -22,4 +23,5 @@ class ErrorBmsCommunicationState: public BasicState {
 
     private:
         bluefairy::TaskNode *_bmsFetchTask;
+        BMSState lastBmsState;
 };

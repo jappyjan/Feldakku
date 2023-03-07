@@ -1,5 +1,6 @@
 #include "bms.hpp"
 #include "const.hpp"
+#include "app-state.hpp"
 
 #include <jbdbms.h>
 
@@ -12,11 +13,26 @@ bool BMS::fetchState() {
   JbdBms::Status status;
   if (!this->_bms->getStatus(status)) {
     Serial.println("BMS::fetchState() - failed");
-
+    this->_state = BMSState::BMS_ERROR_COMMUNICATION;
     return false;
   }
 
   Serial.println("BMS::fetchState() - Got BMS status");
+
+  if (this->_bms->isShortCircuit(status.fault)) {
+    this->_state = BMSState::BMS_ERROR_SHORT_CIRCUIT;
+    return false;
+  }
+
+  if (this->_bms->isCellOvervoltage(status.fault)) {
+    this->_state = BMSState::BMS_ERROR_CELL_OVERVOLTAGE;
+    return false;
+  }
+
+  if (this->_bms->isCellUndervoltage(status.fault)) {
+    this->_state = BMSState::BMS_ERROR_CELL_UNDERVOLTAGE;
+    return false;
+  }
 
   // divide it by int 10 to reduce one decimal place
   // then divide it by float 10 to reduce it to a float of Volts
@@ -82,6 +98,7 @@ bool BMS::fetchState() {
   }
 
   Serial.println("BMS::fetchState() - Done");
+  this->_state = BMSState::BMS_OK;
   return true;
 }
 
@@ -153,4 +170,8 @@ void BMS::toggleDischarging() {
   this->_screen->setDischargingIsEnabled(isEnabled);
 
   Serial.println("BMS::toggleDischarging() - Done");
+}
+
+BMSState BMS::getState() {
+  return this->_state;
 }

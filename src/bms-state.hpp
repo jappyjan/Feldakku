@@ -1,0 +1,9 @@
+#pragma once
+
+enum BMSState {
+    BMS_OK = 0,
+    BMS_ERROR_COMMUNICATION = 1,
+    BMS_ERROR_SHORT_CIRCUIT = 2,
+    BMS_ERROR_CELL_OVERVOLTAGE = 3,
+    BMS_ERROR_CELL_UNDERVOLTAGE = 4
+};
