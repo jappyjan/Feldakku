@@ -1,63 +1,87 @@
 #include <arduino.h>
 #include <HardwareSerial.h>
+#include <bluefairy.h>
 
 #include "screen.hpp"
 #include "bms.hpp"
 #include "const.hpp"
+#include "main.state.hpp"
+#include "error-bms-communication.state.hpp"
+#include "buttons.hpp"
+
+TaskHandle_t UiTask;
+TaskHandle_t BackendTask;
 
 Screen screen;
-BMS bms(screen);
 
-void setup() {
-  Serial.begin(115200);
+HardwareSerial &BMSSerial = Serial1;
+JbdBms bmsLib(BMSSerial);
+BMS bms(&bmsLib, &screen);
 
-  Serial.println("Starting Screen");
-  screen.begin();
+bluefairy::StateMachine<2> stateMachine;
+bluefairy::Scheduler scheduler;
+MainState mainState(&bms, &screen, &stateMachine, &scheduler);
+ErrorBmsCommunicationState errorBmsCommunicationState(&bms, &screen, &stateMachine, &scheduler);
 
-  Serial.println("Starting BMS Communication");
-  bms.begin(BMS_SERIAL_RX_PIN, BMS_SERIAL_TX_PIN);
-
+inline void setupButtons() {
   pinMode(BTN_1_PIN, INPUT_PULLUP);
   pinMode(BTN_2_PIN, INPUT_PULLUP);
   pinMode(BTN_3_PIN, INPUT_PULLUP);
   pinMode(BTN_4_PIN, INPUT_PULLUP);
   pinMode(BTN_5_PIN, INPUT_PULLUP);
+}
 
+inline void setupMosfetSwitches() {
   pinMode(MOSFET_4S_PIN, OUTPUT);
   pinMode(MOSFET_6S_PIN, OUTPUT);
+}
 
-  attachInterrupt(BTN_1_PIN, []() {
-    // main state row -> nothing
-  }, FALLING);
+void UiCode(void * parameter) {
+  Serial.print("Starting Screen");
+  // print current core
+  Serial.print(" on core ");
+  Serial.println(xPortGetCoreID());
 
-  attachInterrupt(BTN_2_PIN, []() {
-    // charging state row
-    bms.toggleCharging();
-  }, FALLING);
+  screen.begin();
 
-  attachInterrupt(BTN_3_PIN, []() {
-    // discharging state row
-    bms.toggleDischarging();
-  }, FALLING);
+  for (;;) {
+    screen.loop();
+  }
+}
 
-  attachInterrupt(BTN_4_PIN, []() {
-    // 4S mosfet row
-    digitalWrite(MOSFET_4S_PIN, !digitalRead(MOSFET_4S_PIN));
-    screen.setFourSOutputIsEnabled(digitalRead(MOSFET_4S_PIN));
-  }, FALLING);
+void setup() {
+  Serial.begin(115200);
 
-  attachInterrupt(BTN_5_PIN, []() {
-    // 6S mosfet row
-    digitalWrite(MOSFET_6S_PIN, !digitalRead(MOSFET_6S_PIN));
-    screen.setSixSIsEnabled(digitalRead(MOSFET_6S_PIN));
-  }, FALLING);
+  xTaskCreatePinnedToCore(
+      UiCode, /* Function to implement the task */
+      "UI", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      0,  /* Priority of the task */
+      &UiTask,  /* Task handle. */
+      0 /* Core where the task should run */
+  );
+
+  Serial.println("Starting BMS Communication");
+  BMSSerial.begin(9600, SERIAL_8N1, BMS_SERIAL_RX_PIN, BMS_SERIAL_TX_PIN);
+  bms.begin();
+
+  Buttons::begin();
+  setupMosfetSwitches();
+
+  Serial.println("Attaching state machines");                                    
+  stateMachine[AppState::MAIN_STATE] = mainState;
+  stateMachine[AppState::ERROR_BMS_COMMUNICATION_STATE] = errorBmsCommunicationState;
+
+  Serial.println("Starting state machine");
+  stateMachine.toState(AppState::MAIN_STATE);
 
   Serial.println("Setup done");
+  scheduler.every(25, []() {
+    Buttons::update();
+  });
 }
 
 void loop() {
-  bms.tick();
-  screen.tick();
-
-  delay(1000);
+  scheduler.loop();
 }

@@ -10,5 +10,7 @@
 #define BTN_4_PIN 14
 #define BTN_5_PIN 12
 
+#define BTN_DEBOUNCE_TIME 200
+
 #define MOSFET_4S_PIN 15
 #define MOSFET_6S_PIN 2

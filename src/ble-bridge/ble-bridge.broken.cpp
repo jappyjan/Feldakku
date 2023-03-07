@@ -1,3 +1,5 @@
+/*
+
 #include <Arduino.h>
 #include <BLEServer.h>
 #include <BLEDevice.h>
@@ -76,11 +78,11 @@ void setupNot() {
   pAdvertising->setMinPreferred(0x12);
 
   BLEDevice::startAdvertising();
-/*
   Serial.println("Registering BLE Callbacks");
   // pCharacteristicRx->setCallbacks(&bleCb);
-  */
 
   // Serial.println("Registering BMS Serial Callbacks");
   // bms.setSerialCb(bmsSerialCallback);
 }
+
+*/

@@ -2,6 +2,7 @@
 
 #include <GxEPD2_3C.h>
 #include <pgmspace.h>
+#include <bluefairy.h>
 
 static const uint8_t EPD_BUSY = 4;  // to EPD BUSY
 static const uint8_t EPD_CS   = 5;  // to EPD CS
@@ -20,16 +21,27 @@ static const uint8_t SCREEN_COLUMN_WIDTH = SCREEN_WIDTH / SCREEN_COLUMNS;
 
 enum HorizontalAlignment {HLEFT, HCENTER, HRIGHT};
 enum VerticalAlignment {VTOP, VCENTER, VBOTTOM};
-enum BMSError {
-    NO_ERROR = 0,
-    COMMUNICATION_ERROR = 1,
+
+enum ScreenLayout {
+    MAIN_SCREEN,
+    POPUP,
 };
 
 class Screen {
     public:
         Screen();
         void begin();
-        void tick();
+        void loop();
+
+        void openMainScreen();
+        void openPopup(
+            String lineOne,
+            String lineTwo = "",
+            String lineThree = "",
+            uint16_t textColour = GxEPD_BLACK,
+            uint16_t backgroundColour = GxEPD_WHITE,
+            bool closable = false
+        );
 
         void setBatteryVoltage(float voltage);
         void setBatteryVoltageWarning(bool batteryVoltageWarning);
@@ -41,7 +53,6 @@ class Screen {
         void setDischargeCurrent(float dischargeCurrent);
         void setSixSIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
-        void setBMSError(BMSError error);
     
     private:
         float batteryVoltage;
@@ -54,19 +65,25 @@ class Screen {
         float dischargeCurrent;
         bool sixSIsEnabled;
         bool fourSOutputIsEnabled;
-        bool hasChanged;
-        unsigned long lastTick;
+        ScreenLayout screenLayout;
         GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT> *display;
-        uint8_t bmsError;
+        String popupLineOne;
+        String popupLineTwo;
+        String popupLineThree;
+        uint16_t popupTextColour;
+        uint16_t popupBackgroundColour;
+        bool popupClosable;
+        bool needsRedraw;
 
         void initaliseScreen();
         void initVariables();
 
-        void drawString(int x, int y, String text, HorizontalAlignment align = HLEFT, VerticalAlignment valign = VTOP);
-        void drawMenuBox(uint8_t row, uint8_t collumn, String textRowOne, String textRowTwo = "", bool warningRowOne = false, bool warningRowTwo = false);
-        void drawRow(uint8_t row, String label, String valueRowOne, String valueRowTwo = "", bool warningRowOne = false, bool warningRowTwo = false);
+        void drawMainScreen();
+        void drawPopup();
 
-        void updateScreen();
+        void drawString(int x, int y, String text, HorizontalAlignment align = HLEFT, VerticalAlignment valign = VTOP, uint16_t color = GxEPD_BLACK);
+        void drawMenuBox(uint8_t row, uint8_t collumn, String textRowOne, String textRowTwo = "", uint16_t bgRowOne = GxEPD_WHITE, uint16_t bgRowTwo = GxEPD_WHITE);
+        void drawRow(uint8_t row, String label, String valueRowOne, String valueRowTwo = "", uint16_t bgRowOne = GxEPD_WHITE, uint16_t bgRowTwo = GxEPD_WHITE);
 
         void drawMainRow();
         void drawChargeRow();
