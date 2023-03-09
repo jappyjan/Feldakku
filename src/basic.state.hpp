@@ -10,7 +10,7 @@ class BasicState: public bluefairy::State {
         BasicState(
             BMS *bms,
             Screen *screen,
-            bluefairy::StateMachine<2> *stateMachine,
+            AppStateMachine *stateMachine,
             bluefairy::Scheduler *scheduler
         ) {
             this->_bms = bms;
@@ -22,6 +22,6 @@ class BasicState: public bluefairy::State {
     protected:
         BMS *_bms;
         Screen *_screen;
-        bluefairy::StateMachine<2> *_stateMachine;
+        AppStateMachine *_stateMachine;
         bluefairy::Scheduler *_scheduler;
 };

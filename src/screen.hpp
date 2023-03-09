@@ -36,6 +36,7 @@ class Screen {
 
         void openMainScreen();
         void openBMSErrorPopup(BMSState bmsState);
+        void openBLEPopup();
 
         void setBatteryVoltage(float voltage);
         void setBatteryVoltageWarning(bool batteryVoltageWarning);

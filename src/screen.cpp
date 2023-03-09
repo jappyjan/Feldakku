@@ -365,6 +365,19 @@ void Screen::openBMSErrorPopup(BMSState bmsState) {
     Serial.println("Screen::openBMSErrorPopup()");
 }
 
+void Screen::openBLEPopup() {
+    this->popupLineOne = "BLE";
+    this->popupLineTwo = "Active";
+    this->popupLineThree = "";
+    this->popupTextColour = GxEPD_WHITE;
+    this->popupBackgroundColour = GxEPD_BLACK;
+    this->popupClosable = true;
+
+    this->screenLayout = ScreenLayout::POPUP;
+    this->needsRedraw = true;
+    Serial.println("Screen::openBLEPopup()");
+}
+
 void Screen::setBatteryVoltage(float voltage) {
     if (this->batteryVoltage == voltage) {
         return;

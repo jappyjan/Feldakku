@@ -14,3 +14,8 @@
 
 #define MOSFET_4S_PIN 15
 #define MOSFET_6S_PIN 2
+
+#define BLE_PIN_RX 34
+#define BLE_PIN_TX 22
+#define BLE_PIN_ENABLE 19
+#define BLE_BRIDGE_POLL_INTERVAL 1

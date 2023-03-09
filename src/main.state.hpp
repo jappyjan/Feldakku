@@ -8,7 +8,7 @@ class MainState: public BasicState {
         MainState(
             BMS *bms,
             Screen *screen,
-            bluefairy::StateMachine<2> *stateMachine,
+            AppStateMachine *stateMachine,
             bluefairy::Scheduler *scheduler
         ): BasicState(
             bms,
