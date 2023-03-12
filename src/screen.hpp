@@ -48,7 +48,7 @@ class Screen {
         void setDischargingIsEnabled(bool dischargingIsEnabled);
         void setDischargeCurrent(float dischargeCurrent);
         void setDischargeOvercurrentWarning(bool dischargeOvercurrentWarning);
-        void setSixSIsEnabled(bool usbIsEnabled);
+        void setUsbIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
     
     private:
@@ -62,7 +62,7 @@ class Screen {
         bool dischargingIsEnabled;
         float dischargeCurrent;
         bool dischargeOvercurrentWarning;
-        bool sixSIsEnabled;
+        bool usbIsEnabled;
         bool fourSOutputIsEnabled;
         ScreenLayout screenLayout;
         GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT> *display;
@@ -87,7 +87,7 @@ class Screen {
         void drawMainRow();
         void drawChargeRow();
         void drawDischargeRow();
-        void drawSixSRow();
+        void drawUsbRow();
         void drawFourSRow();
         void drawError();
 };

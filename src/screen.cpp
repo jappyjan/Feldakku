@@ -37,7 +37,7 @@ void Screen::initVariables() {
     this->dischargingIsEnabled = false;
     this->dischargeCurrent = 0.0;
     this->fourSOutputIsEnabled = false;
-    this->sixSIsEnabled = false;
+    this->usbIsEnabled = false;
     this->needsRedraw = false;
     this->screenLayout = MAIN_SCREEN;
 }
@@ -242,9 +242,9 @@ void Screen::drawDischargeRow() {
     );
 }
 
-void Screen::drawSixSRow() {
+void Screen::drawUsbRow() {
     String state = "";
-    if (this->sixSIsEnabled) {
+    if (this->usbIsEnabled) {
         state.concat("ON");
     } else {
         state.concat("OFF");
@@ -252,10 +252,10 @@ void Screen::drawSixSRow() {
 
     this->drawRow(
         4,
-        "6S",
+        "USB",
         state,
         "",
-        this->sixSIsEnabled ? GxEPD_BLACK : GxEPD_WHITE
+        this->usbIsEnabled ? GxEPD_BLACK : GxEPD_WHITE
     );
 }
 
@@ -283,7 +283,7 @@ void Screen::drawMainScreen() {
     this->drawMainRow();
     this->drawChargeRow();
     this->drawDischargeRow();
-    this->drawSixSRow();
+    this->drawUsbRow();
     this->drawFourSRow();
 }
 
@@ -498,14 +498,14 @@ void Screen::setDischargeOvercurrentWarning(bool dischargeOvercurrentWarning) {
     }
 }
 
-void Screen::setSixSIsEnabled(bool sixSIsEnabled) {
-    if (this->sixSIsEnabled == sixSIsEnabled) {
+void Screen::setUsbIsEnabled(bool isEnabled) {
+    if (this->usbIsEnabled == isEnabled) {
         return;
     }
 
-    this->sixSIsEnabled = sixSIsEnabled;
+    this->usbIsEnabled = isEnabled;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setSixSIsEnabled() - needs redraw");
+        Serial.println("Screen::setUsbIsEnabled() - needs redraw");
         this->needsRedraw = true;
     }
 }

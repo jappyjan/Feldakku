@@ -28,9 +28,9 @@ void MainState::enter(){
                 this->_screen->setFourSOutputIsEnabled(digitalRead(MOSFET_4S_PIN));
                 break;
             case BUTTON_5:
-                // 6S mosfet row
-                digitalWrite(MOSFET_6S_PIN, !digitalRead(MOSFET_6S_PIN));
-                this->_screen->setSixSIsEnabled(digitalRead(MOSFET_6S_PIN));
+                // USB mosfet row
+                digitalWrite(MOSFET_USB_PIN, !digitalRead(MOSFET_USB_PIN));
+                this->_screen->setUsbIsEnabled(digitalRead(MOSFET_USB_PIN));
                 break;
         }
     });
