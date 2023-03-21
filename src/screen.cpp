@@ -10,46 +10,7 @@
 #include "screen.hpp"
 #include "bms.hpp"
 
-// default constructor
-Screen::Screen() {
-} //Screen
-
-void Screen::initaliseScreen() {
-    this->display->init(115200, true, 2, false);
-    //// this->display->init(); for older Waveshare HAT's
-    SPI.end();
-    SPI.begin(EPD_SCK, EPD_MISO, EPD_MOSI, EPD_CS);
-    this->display->setRotation(0);
-    this->display->setTextSize(1);
-    this->display->setFont(&DejaVu_Sans_Bold_11);
-    this->display->setTextColor(GxEPD_BLACK);
-    this->display->setFullWindow();
-    this->display->setTextWrap(false);
-}
-
-void Screen::initVariables() {
-    this->batteryVoltage = 0.0;
-    this->batteryVoltageWarning = false;
-    this->batteryTemperature = 0.0;
-    this->batteryTemperatureWarning = false;
-    this->chargingIsEnabled = false;
-    this->chargeCurrent = 0.0;
-    this->dischargingIsEnabled = false;
-    this->dischargeCurrent = 0.0;
-    this->fourSOutputIsEnabled = false;
-    this->usbIsEnabled = false;
-    this->needsRedraw = false;
-    this->screenLayout = MAIN_SCREEN;
-}
-
-void Screen::begin() {
-    Serial.println("Screen begin");
-    this->display = new GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT>(GxEPD2_213_Z98c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
-    this->initVariables();
-    this->initaliseScreen();
-
-    Serial.println("Screen initialised");
-}
+// ----------------------------------- Drawing functions -----------------------------------
 
 void Screen::drawString(
     int x,
@@ -276,6 +237,8 @@ void Screen::drawFourSRow() {
     );
 }
 
+// ------------------------------------ Screen functions -----------------------------------
+
 void Screen::drawMainScreen() {
     Serial.println("Drawing main screen");
 
@@ -285,6 +248,12 @@ void Screen::drawMainScreen() {
     this->drawDischargeRow();
     this->drawUsbRow();
     this->drawFourSRow();
+}
+
+void Screen::openMainScreen() {
+    this->screenLayout = ScreenLayout::MAIN_SCREEN;
+    Serial.println("Screen::openMainScreen()");
+    this->needsRedraw = true;
 }
 
 void Screen::drawPopup() {
@@ -328,12 +297,6 @@ void Screen::drawPopup() {
     );
 }
 
-void Screen::openMainScreen() {
-    this->screenLayout = ScreenLayout::MAIN_SCREEN;
-    Serial.println("Screen::openMainScreen()");
-    this->needsRedraw = true;
-}
-
 void Screen::openBMSErrorPopup(BMSState bmsState) {
     this->popupLineOne = "BMS";
     
@@ -358,7 +321,7 @@ void Screen::openBMSErrorPopup(BMSState bmsState) {
     this->popupLineThree = "Error";
     this->popupTextColour = GxEPD_WHITE;
     this->popupBackgroundColour = GxEPD_RED;
-    this->popupClosable = false;
+    this->popupClosable = true;
 
     this->screenLayout = ScreenLayout::POPUP;
     this->needsRedraw = true;
@@ -377,6 +340,40 @@ void Screen::openBLEPopup() {
     this->needsRedraw = true;
     Serial.println("Screen::openBLEPopup()");
 }
+
+void Screen::drawMenu() {
+    Serial.println("Drawing menu");
+
+    this->display->fillScreen(GxEPD_WHITE);
+    this->drawRow(0, "MENU", "EXIT");
+    this->drawRow(
+        1,
+        "BLE",
+        this->bleIsActive ? "ON" : "OFF", 
+        "", 
+        bleIsActive ? GxEPD_BLACK : GxEPD_WHITE,
+        bleIsActive ? GxEPD_BLACK : GxEPD_WHITE
+    );
+    this->drawRow(
+        2, 
+        "OTA", 
+        this->otaIsActive ? "ON" : "OFF",
+        "",
+        otaIsActive ? GxEPD_BLACK : GxEPD_WHITE,
+        otaIsActive ? GxEPD_BLACK : GxEPD_WHITE
+    );
+
+    this->drawRow(3, "", "");
+    this->drawRow(4, "Reboot", "Do it", "Now", GxEPD_RED, GxEPD_RED);
+}
+
+void Screen::openMenu() {
+    this->screenLayout = ScreenLayout::MENU;
+    this->needsRedraw = true;
+    Serial.println("Screen::openMenu()");
+}
+
+// ------------------------------------- Data functions ------------------------------------
 
 void Screen::setBatteryVoltage(float voltage) {
     if (this->batteryVoltage == voltage) {
@@ -522,6 +519,80 @@ void Screen::setFourSOutputIsEnabled(bool fourSOutputIsEnabled) {
     }
 }
 
+void Screen::setBLEIsActive(bool bleIsActive) {
+    if (this->bleIsActive == bleIsActive) {
+        return;
+    }
+
+    this->bleIsActive = bleIsActive;
+    if (this->screenLayout == ScreenLayout::MENU) {
+        Serial.println("Screen::setBleIsActive() - needs redraw");
+        this->needsRedraw = true;
+    }
+}
+
+void Screen::setOTAIsActive(bool otaIsActive) {
+    if (this->otaIsActive == otaIsActive) {
+        return;
+    }
+
+    this->otaIsActive = otaIsActive;
+    if (this->screenLayout == ScreenLayout::MENU) {
+        Serial.println("Screen::setOTAIsActive() - needs redraw");
+        this->needsRedraw = true;
+    }
+}
+
+// ------------------------------------- Basic functions -----------------------------------
+
+Screen::Screen() {
+}
+
+void Screen::initaliseScreen() {
+    this->display->init(115200, true, 2, false);
+    //// this->display->init(); for older Waveshare HAT's
+    SPI.end();
+    SPI.begin(EPD_SCK, EPD_MISO, EPD_MOSI, EPD_CS);
+    this->display->setRotation(0);
+    this->display->setTextSize(1);
+    this->display->setFont(&DejaVu_Sans_Bold_11);
+    this->display->setTextColor(GxEPD_BLACK);
+    this->display->setFullWindow();
+    this->display->setTextWrap(false);
+}
+
+void Screen::initVariables() {
+    this->batteryVoltage = 0.0;
+    this->batteryVoltageWarning = false;
+    this->batteryTemperature = 0.0;
+    this->batteryTemperatureWarning = false;
+    this->chargingIsEnabled = false;
+    this->chargeCurrent = 0.0;
+    this->dischargingIsEnabled = false;
+    this->dischargeCurrent = 0.0;
+    this->fourSOutputIsEnabled = false;
+    this->usbIsEnabled = false;
+    this->needsRedraw = false;
+    this->screenLayout = MAIN_SCREEN;
+    this->popupBackgroundColour = GxEPD_WHITE;
+    this->popupTextColour = GxEPD_BLACK;
+    this->popupClosable = false;
+    this->popupLineOne = "";
+    this->popupLineTwo = "";
+    this->popupLineThree = "";
+    this->bleIsActive = false;
+    this->otaIsActive = false;
+}
+
+void Screen::begin() {
+    Serial.println("Screen begin");
+    this->display = new GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT>(GxEPD2_213_Z98c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
+    this->initVariables();
+    this->initaliseScreen();
+
+    Serial.println("Screen initialised");
+}
+
 void Screen::loop() {
     if (!this->needsRedraw) {
         return;
@@ -535,6 +606,9 @@ void Screen::loop() {
             break;
         case ScreenLayout::POPUP:
             this->drawPopup();
+            break;
+        case ScreenLayout::MENU:
+            this->drawMenu();
             break;
     }
 

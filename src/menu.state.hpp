@@ -4,9 +4,9 @@
 #include <bluefairy.h>
 #include "bms.hpp"
 
-class BLEState: public BasicState {
+class MenuState: public BasicState {
     public:
-        BLEState(
+        MenuState(
             BMS *bms,
             Screen *screen,
             AppStateMachine *stateMachine,
@@ -27,4 +27,7 @@ class BLEState: public BasicState {
         bluefairy::TaskNode *_serialBridgeTask;
         Stream &_bleSerial;
         Stream &_bmsSerial;
+
+        void bleBegin();
+        void bleEnd();
 };

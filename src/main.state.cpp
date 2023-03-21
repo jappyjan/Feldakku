@@ -12,7 +12,7 @@ void MainState::enter(){
         switch (button) {
             case BUTTON_1:
                 // main state row
-                this->_stateMachine->toState(AppState::BLE_STATE);
+                this->_stateMachine->toState(AppState::MENU_STATE);
                 break;
             case BUTTON_2:
                 // charging state row

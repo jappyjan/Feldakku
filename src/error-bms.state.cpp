@@ -1,10 +1,20 @@
 #include "error-bms.state.hpp"
 #include "const.hpp"
+#include "buttons.hpp"
 
 void ErrorBmsState::enter(){
     Serial.println("ErrorBmsState::enter() - Start");
 
     this->_screen->openBMSErrorPopup(this->_bms->getState());
+
+    Buttons::setOnButtonPressedCallback([this](Button button) -> void {
+        if (button != BUTTON_1) {
+            return;
+        }
+
+        // reboot
+        ESP.restart();
+    });
 
     this->_bmsFetchTask = this->_scheduler->every(BMS_TICK_INTERVAL, [this](){
         this->_bms->fetchState();
@@ -34,6 +44,8 @@ void ErrorBmsState::enter(){
 
 void ErrorBmsState::leave() {
     Serial.println("ErrorBmsState::leave() - Start");
+
+    Buttons::setOnButtonPressedCallback(nullptr);
 
     if (this->_bmsFetchTask != nullptr) {
         this->_bmsFetchTask->cancel();

@@ -26,6 +26,7 @@ enum VerticalAlignment {VTOP, VCENTER, VBOTTOM};
 enum ScreenLayout {
     MAIN_SCREEN,
     POPUP,
+    MENU,
 };
 
 class Screen {
@@ -37,6 +38,7 @@ class Screen {
         void openMainScreen();
         void openBMSErrorPopup(BMSState bmsState);
         void openBLEPopup();
+        void openMenu();
 
         void setBatteryVoltage(float voltage);
         void setBatteryVoltageWarning(bool batteryVoltageWarning);
@@ -50,6 +52,8 @@ class Screen {
         void setDischargeOvercurrentWarning(bool dischargeOvercurrentWarning);
         void setUsbIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
+        void setBLEIsActive(bool bleIsActive);
+        void setOTAIsActive(bool otaIsActive);
     
     private:
         float batteryVoltage;
@@ -73,12 +77,15 @@ class Screen {
         uint16_t popupBackgroundColour;
         bool popupClosable;
         bool needsRedraw;
+        bool bleIsActive;
+        bool otaIsActive;
 
         void initaliseScreen();
         void initVariables();
 
         void drawMainScreen();
         void drawPopup();
+        void drawMenu();
 
         void drawString(int x, int y, String text, HorizontalAlignment align = HLEFT, VerticalAlignment valign = VTOP, uint16_t color = GxEPD_BLACK);
         void drawMenuBox(uint8_t row, uint8_t collumn, String textRowOne, String textRowTwo = "", uint16_t bgRowOne = GxEPD_WHITE, uint16_t bgRowTwo = GxEPD_WHITE);

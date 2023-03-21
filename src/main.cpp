@@ -8,7 +8,7 @@
 #include "main.state.hpp"
 #include "error-bms.state.hpp"
 #include "buttons.hpp"
-#include "ble.state.hpp"
+#include "menu.state.hpp"
 
 HardwareSerial &BMSSerial = Serial1;
 HardwareSerial &BLESerial = Serial2;
@@ -26,7 +26,7 @@ BMS bms(&bmsLib, &screen);
 bluefairy::Scheduler scheduler;
 MainState mainState(&bms, &screen, &stateMachine, &scheduler);
 ErrorBmsState errorBmsState(&bms, &screen, &stateMachine, &scheduler);
-BLEState bleState(&bms, &screen, &stateMachine, &scheduler, BLESerial, BMSSerial);
+MenuState menuState(&bms, &screen, &stateMachine, &scheduler, BLESerial, BMSSerial);
 
 inline void setupButtons() {
   pinMode(BTN_1_PIN, INPUT_PULLUP);
@@ -36,9 +36,13 @@ inline void setupButtons() {
   pinMode(BTN_5_PIN, INPUT_PULLUP);
 }
 
-inline void setupMosfetSwitches() {
+inline void setupIO() {
   pinMode(MOSFET_4S_PIN, OUTPUT);
-  pinMode(MOSFET_6S_PIN, OUTPUT);
+  pinMode(MOSFET_USB_PIN, OUTPUT);
+  pinMode(BLE_PIN_ENABLE, OUTPUT);
+  digitalWrite(MOSFET_4S_PIN, LOW);
+  digitalWrite(MOSFET_USB_PIN, LOW);
+  digitalWrite(BLE_PIN_ENABLE, LOW);
 }
 
 void UiCode(void * parameter) {
@@ -57,6 +61,8 @@ void UiCode(void * parameter) {
 void setup() {
   Serial.begin(115200);
 
+  Serial.println("setup() - Starting UI");
+
   xTaskCreatePinnedToCore(
       UiCode, /* Function to implement the task */
       "UI", /* Name of the task */
@@ -67,6 +73,8 @@ void setup() {
       0 /* Core where the task should run */
   );
 
+  delay(2000);
+
   Serial.println("setup() - Starting BMS");
   BMSSerial.begin(9600, SERIAL_8N1, BMS_SERIAL_RX_PIN, BMS_SERIAL_TX_PIN);
   bms.begin();
@@ -76,12 +84,12 @@ void setup() {
 
   Serial.println("setup() - Preparing IO");
   Buttons::begin();
-  setupMosfetSwitches();
+  setupIO();
 
   Serial.println("setup() - Starting State Machine");                                    
   stateMachine[AppState::MAIN_STATE] = mainState;
   stateMachine[AppState::ERROR_BMS_STATE] = errorBmsState;
-  stateMachine[AppState::BLE_STATE] = bleState;
+  stateMachine[AppState::MENU_STATE] = menuState;
 
   stateMachine.toState(AppState::MAIN_STATE);
 

@@ -12,8 +12,8 @@
 
 #define BTN_DEBOUNCE_TIME 200
 
-#define MOSFET_4S_PIN 15
-#define MOSFET_USB_PIN 2
+#define MOSFET_USB_PIN 15
+#define MOSFET_4S_PIN 2
 
 #define BLE_PIN_RX 34
 #define BLE_PIN_TX 22
