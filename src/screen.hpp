@@ -4,6 +4,7 @@
 #include <pgmspace.h>
 #include <bluefairy.h>
 #include "bms-state.hpp"
+#include <WiFi.h>
 
 static const uint8_t EPD_BUSY = 4;  // to EPD BUSY
 static const uint8_t EPD_CS   = 5;  // to EPD CS
@@ -42,7 +43,7 @@ class Screen {
 
         void setBatteryVoltage(float voltage);
         void setBatteryVoltageWarning(bool batteryVoltageWarning);
-        void setBatteryTemperature(float temperature);
+        void setBatteryPercentage(uint8_t percentage);
         void setBatteryTemperatureWarning(bool batteryTemperatureWarning);
         void setChargingIsEnabled(bool chargingIsEnabled);
         void setChargeCurrent(float chargeCurrent);
@@ -53,12 +54,11 @@ class Screen {
         void setUsbIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
         void setBLEIsActive(bool bleIsActive);
-        void setOTAIsActive(bool otaIsActive);
     
     private:
         float batteryVoltage;
         bool batteryVoltageWarning;
-        float batteryTemperature;
+        uint8_t batteryPercentage;
         bool batteryTemperatureWarning;
         bool chargingIsEnabled;
         float chargeCurrent;
@@ -78,7 +78,6 @@ class Screen {
         bool popupClosable;
         bool needsRedraw;
         bool bleIsActive;
-        bool otaIsActive;
 
         void initaliseScreen();
         void initVariables();

@@ -2,10 +2,13 @@
 #include "const.hpp"
 #include "buttons.hpp"
 #include "bms.hpp"
+#include "my_logger.hpp"
 
 void MainState::enter(){
-    Serial.println("MainState::enter() - Start");
+    loggingStream.println("MainState::enter() - Start");
 
+    this->_bms->fetchState();
+    delay(50);
     this->_screen->openMainScreen();
 
     Buttons::setOnButtonPressedCallback([this](Button button) -> void {
@@ -39,22 +42,39 @@ void MainState::enter(){
     this->_bmsFetchTask = this->_scheduler->every(BMS_TICK_INTERVAL, [this](){
         this->_bms->fetchState();
 
-        if(this->_bms->getState() != BMSState::BMS_OK) {
+        auto currentState = this->_bms->getState();
+
+        switch (currentState) {
+            case BMSState::BMS_ERROR_CELL_OVERVOLTAGE:
+                loggingStream.println("BMSState::BMS_ERROR_CELL_OVERVOLTAGE");
+                break;
+            case BMSState::BMS_ERROR_CELL_UNDERVOLTAGE:
+                loggingStream.println("BMSState::BMS_ERROR_CELL_UNDERVOLTAGE");
+                break;
+            case BMSState::BMS_ERROR_COMMUNICATION:
+                loggingStream.println("BMSState::BMS_ERROR_COMMUNICATION");
+                break;
+            case BMSState::BMS_ERROR_SHORT_CIRCUIT:
+                loggingStream.println("BMSState::BMS_ERROR_SHORT_CIRCUIT");
+                break;
+        }
+
+        if(currentState != BMSState::BMS_OK) {
             this->_stateMachine->toState(AppState::ERROR_BMS_STATE);
         }
     });
 };
 
 void MainState::leave(){
-    Serial.println("MainState::leave() - Start");
+    loggingStream.println("MainState::leave() - Start");
 
     Buttons::setOnButtonPressedCallback(nullptr);
 
     if (this->_bmsFetchTask != nullptr) {
-        Serial.println("MainState::leave() - Removing BMS fetch task");
+        loggingStream.println("MainState::leave() - Removing BMS fetch task");
         this->_bmsFetchTask->cancel();
         this->_scheduler->removeTask(this->_bmsFetchTask);
     }
 
-    Serial.println("MainState::leave() - End");
+    loggingStream.println("MainState::leave() - End");
 };

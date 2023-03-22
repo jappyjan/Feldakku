@@ -9,6 +9,7 @@
 
 #include "screen.hpp"
 #include "bms.hpp"
+#include "my_logger.hpp"
 
 // ----------------------------------- Drawing functions -----------------------------------
 
@@ -147,7 +148,7 @@ void Screen::drawMainRow() {
         0,
         "State",
         String(this->batteryVoltage, 1) + "V",
-        String(this->batteryTemperature, 1) + "°C",
+        String(this->batteryPercentage) + "%",
         this->batteryVoltageWarning ? GxEPD_RED : GxEPD_WHITE,
         this->batteryTemperatureWarning ? GxEPD_RED : GxEPD_WHITE
     );
@@ -240,7 +241,7 @@ void Screen::drawFourSRow() {
 // ------------------------------------ Screen functions -----------------------------------
 
 void Screen::drawMainScreen() {
-    Serial.println("Drawing main screen");
+    loggingStream.println("Drawing main screen");
 
     this->display->fillScreen(GxEPD_BLACK);
     this->drawMainRow();
@@ -252,7 +253,7 @@ void Screen::drawMainScreen() {
 
 void Screen::openMainScreen() {
     this->screenLayout = ScreenLayout::MAIN_SCREEN;
-    Serial.println("Screen::openMainScreen()");
+    loggingStream.println("Screen::openMainScreen()");
     this->needsRedraw = true;
 }
 
@@ -325,7 +326,7 @@ void Screen::openBMSErrorPopup(BMSState bmsState) {
 
     this->screenLayout = ScreenLayout::POPUP;
     this->needsRedraw = true;
-    Serial.println("Screen::openBMSErrorPopup()");
+    loggingStream.println("Screen::openBMSErrorPopup()");
 }
 
 void Screen::openBLEPopup() {
@@ -338,39 +339,31 @@ void Screen::openBLEPopup() {
 
     this->screenLayout = ScreenLayout::POPUP;
     this->needsRedraw = true;
-    Serial.println("Screen::openBLEPopup()");
+    loggingStream.println("Screen::openBLEPopup()");
 }
 
 void Screen::drawMenu() {
-    Serial.println("Drawing menu");
+    loggingStream.println("Drawing menu");
 
     this->display->fillScreen(GxEPD_WHITE);
     this->drawRow(0, "MENU", "EXIT");
+
     this->drawRow(
         1,
-        "BLE",
+        "APP BT",
         this->bleIsActive ? "ON" : "OFF", 
         "", 
         bleIsActive ? GxEPD_BLACK : GxEPD_WHITE,
         bleIsActive ? GxEPD_BLACK : GxEPD_WHITE
     );
-    this->drawRow(
-        2, 
-        "OTA", 
-        this->otaIsActive ? "ON" : "OFF",
-        "",
-        otaIsActive ? GxEPD_BLACK : GxEPD_WHITE,
-        otaIsActive ? GxEPD_BLACK : GxEPD_WHITE
-    );
 
-    this->drawRow(3, "", "");
     this->drawRow(4, "Reboot", "Do it", "Now", GxEPD_RED, GxEPD_RED);
 }
 
 void Screen::openMenu() {
     this->screenLayout = ScreenLayout::MENU;
     this->needsRedraw = true;
-    Serial.println("Screen::openMenu()");
+    loggingStream.println("Screen::openMenu()");
 }
 
 // ------------------------------------- Data functions ------------------------------------
@@ -382,7 +375,7 @@ void Screen::setBatteryVoltage(float voltage) {
 
     this->batteryVoltage = voltage;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setBatteryVoltage() - needs redraw");
+        loggingStream.println("Screen::setBatteryVoltage() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -394,19 +387,19 @@ void Screen::setBatteryVoltageWarning(bool batteryVoltageWarning) {
 
     this->batteryVoltageWarning = batteryVoltageWarning;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setBatteryVoltageWarning() - needs redraw");
+        loggingStream.println("Screen::setBatteryVoltageWarning() - needs redraw");
         this->needsRedraw = true;
     }
 }
 
-void Screen::setBatteryTemperature(float temperature) {
-    if (this->batteryTemperature == temperature) {
+void Screen::setBatteryPercentage(uint8_t percentage) {
+    if (this->batteryPercentage == percentage) {
         return;
     }
 
-    this->batteryTemperature = temperature;
+    this->batteryPercentage = percentage;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setBatteryTemperature() - needs redraw");
+        loggingStream.println("Screen::setBatteryPercentage() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -418,7 +411,7 @@ void Screen::setBatteryTemperatureWarning(bool batteryTemperatureWarning) {
 
     this->batteryTemperatureWarning = batteryTemperatureWarning;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setBatteryTemperatureWarning() - needs redraw");
+        loggingStream.println("Screen::setBatteryTemperatureWarning() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -430,7 +423,7 @@ void Screen::setChargingIsEnabled(bool chargingIsEnabled) {
 
     this->chargingIsEnabled = chargingIsEnabled;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setChargingIsEnabled() - needs redraw");
+        loggingStream.println("Screen::setChargingIsEnabled() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -442,7 +435,7 @@ void Screen::setChargeCurrent(float chargeCurrent) {
 
     this->chargeCurrent = chargeCurrent;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setChargeCurrent() - needs redraw");
+        loggingStream.println("Screen::setChargeCurrent() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -454,7 +447,7 @@ void Screen::setChargeOvercurrentWarning(bool chargeOvercurrentWarning) {
 
     this->chargeOvercurrentWarning = chargeOvercurrentWarning;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setChargeOvercurrentWarning() - needs redraw");
+        loggingStream.println("Screen::setChargeOvercurrentWarning() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -466,7 +459,7 @@ void Screen::setDischargingIsEnabled(bool dischargingIsEnabled) {
 
     this->dischargingIsEnabled = dischargingIsEnabled;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setDischargingIsEnabled() - needs redraw");
+        loggingStream.println("Screen::setDischargingIsEnabled() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -478,7 +471,7 @@ void Screen::setDischargeCurrent(float dischargeCurrent) {
 
     this->dischargeCurrent = dischargeCurrent;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setDischargeCurrent() - needs redraw");
+        loggingStream.println("Screen::setDischargeCurrent() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -490,7 +483,7 @@ void Screen::setDischargeOvercurrentWarning(bool dischargeOvercurrentWarning) {
 
     this->dischargeOvercurrentWarning = dischargeOvercurrentWarning;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setDischargeOvercurrentWarning() - needs redraw");
+        loggingStream.println("Screen::setDischargeOvercurrentWarning() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -502,7 +495,7 @@ void Screen::setUsbIsEnabled(bool isEnabled) {
 
     this->usbIsEnabled = isEnabled;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setUsbIsEnabled() - needs redraw");
+        loggingStream.println("Screen::setUsbIsEnabled() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -514,7 +507,7 @@ void Screen::setFourSOutputIsEnabled(bool fourSOutputIsEnabled) {
 
     this->fourSOutputIsEnabled = fourSOutputIsEnabled;
     if (this->screenLayout == ScreenLayout::MAIN_SCREEN) {
-        Serial.println("Screen::setFourSOutputIsEnabled() - needs redraw");
+        loggingStream.println("Screen::setFourSOutputIsEnabled() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -526,19 +519,7 @@ void Screen::setBLEIsActive(bool bleIsActive) {
 
     this->bleIsActive = bleIsActive;
     if (this->screenLayout == ScreenLayout::MENU) {
-        Serial.println("Screen::setBleIsActive() - needs redraw");
-        this->needsRedraw = true;
-    }
-}
-
-void Screen::setOTAIsActive(bool otaIsActive) {
-    if (this->otaIsActive == otaIsActive) {
-        return;
-    }
-
-    this->otaIsActive = otaIsActive;
-    if (this->screenLayout == ScreenLayout::MENU) {
-        Serial.println("Screen::setOTAIsActive() - needs redraw");
+        loggingStream.println("Screen::setBleIsActive() - needs redraw");
         this->needsRedraw = true;
     }
 }
@@ -564,7 +545,7 @@ void Screen::initaliseScreen() {
 void Screen::initVariables() {
     this->batteryVoltage = 0.0;
     this->batteryVoltageWarning = false;
-    this->batteryTemperature = 0.0;
+    this->batteryPercentage = 0;
     this->batteryTemperatureWarning = false;
     this->chargingIsEnabled = false;
     this->chargeCurrent = 0.0;
@@ -581,16 +562,15 @@ void Screen::initVariables() {
     this->popupLineTwo = "";
     this->popupLineThree = "";
     this->bleIsActive = false;
-    this->otaIsActive = false;
 }
 
 void Screen::begin() {
-    Serial.println("Screen begin");
+    loggingStream.println("Screen begin");
     this->display = new GxEPD2_3C<GxEPD2_213_Z98c, GxEPD2_213_Z98c::HEIGHT>(GxEPD2_213_Z98c(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
     this->initVariables();
     this->initaliseScreen();
 
-    Serial.println("Screen initialised");
+    loggingStream.println("Screen initialised");
 }
 
 void Screen::loop() {

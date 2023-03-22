@@ -3,6 +3,8 @@
 #include "basic.state.hpp"
 #include <bluefairy.h>
 #include "bms.hpp"
+#include "my_logger.hpp"
+#include "buttons.hpp"
 
 class MenuState: public BasicState {
     public:
@@ -27,6 +29,7 @@ class MenuState: public BasicState {
         bluefairy::TaskNode *_serialBridgeTask;
         Stream &_bleSerial;
         Stream &_bmsSerial;
+        bool needsReboot = false;
 
         void bleBegin();
         void bleEnd();

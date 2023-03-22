@@ -1,36 +1,40 @@
 #include "bms.hpp"
 #include "const.hpp"
 #include "app-state.hpp"
+#include "my_logger.hpp"
 
 #include <jbdbms.h>
 
 void BMS::begin() {
-    Serial.println("Starting BMS Library");
+    loggingStream.println("Starting BMS Library");
     this->_bms->begin(-1);
 }
 
 bool BMS::fetchState() {
   JbdBms::Status status;
   if (!this->_bms->getStatus(status)) {
-    Serial.println("BMS::fetchState() - failed");
+    loggingStream.println("BMS::fetchState() - Communication failed");
     this->_state = BMSState::BMS_ERROR_COMMUNICATION;
     return false;
   }
 
-  Serial.println("BMS::fetchState() - Got BMS status");
+  loggingStream.println("BMS::fetchState() - Got BMS status");
 
   if (this->_bms->isShortCircuit(status.fault)) {
     this->_state = BMSState::BMS_ERROR_SHORT_CIRCUIT;
+    loggingStream.println("BMS::fetchState() - Short circuit");
     return false;
   }
 
   if (this->_bms->isCellOvervoltage(status.fault)) {
     this->_state = BMSState::BMS_ERROR_CELL_OVERVOLTAGE;
+    loggingStream.println("BMS::fetchState() - Cell overvoltage");
     return false;
   }
 
   if (this->_bms->isCellUndervoltage(status.fault)) {
     this->_state = BMSState::BMS_ERROR_CELL_UNDERVOLTAGE;
+    loggingStream.println("BMS::fetchState() - Cell undervoltage");
     return false;
   }
 
@@ -49,8 +53,8 @@ bool BMS::fetchState() {
   }
   this->_screen->setBatteryVoltageWarning(hasVoltageWarning);
 
-  float temperature = JbdBms::deciCelsius(status.temperatures[0]) / 10.0;
-  this->_screen->setBatteryTemperature(temperature);
+  loggingStream.println(status.currentCapacity);
+  this->_screen->setBatteryPercentage(status.currentCapacity);
 
   bool hasTemperatureWarning = false;
   if (this->_bms->isChargeOvertemperature(status.fault)) {
@@ -97,13 +101,13 @@ bool BMS::fetchState() {
       break;
   }
 
-  Serial.println("BMS::fetchState() - Done");
+  loggingStream.println("BMS::fetchState() - Done");
   this->_state = BMSState::BMS_OK;
   return true;
 }
 
 void BMS::toggleCharging() {
-  Serial.println("BMS::toggleCharging() - Toggling charging");
+  loggingStream.println("BMS::toggleCharging() - Toggling charging");
 
   bool isEnabled = false;
   JbdBms::mosfet nextMosfetState;
@@ -127,18 +131,18 @@ void BMS::toggleCharging() {
   }
 
   if (!this->_bms->setMosfetStatus(nextMosfetState)) {
-    Serial.println("BMS::toggleCharging() - failed");
+    loggingStream.println("BMS::toggleCharging() - failed");
     return;
   }
 
   this->_screen->setChargingIsEnabled(isEnabled);
   this->lastMosfetState = nextMosfetState;
 
-  Serial.println("BMS::toggleCharging() - Done");
+  loggingStream.println("BMS::toggleCharging() - Done");
 }
 
 void BMS::toggleDischarging() {
-  Serial.println("BMS::toggleDischarging() - Toggling discharging");
+  loggingStream.println("BMS::toggleDischarging() - Toggling discharging");
 
   bool isEnabled = false;
   JbdBms::mosfet nextMosfetState;
@@ -163,13 +167,13 @@ void BMS::toggleDischarging() {
   }
 
   if (!this->_bms->setMosfetStatus(nextMosfetState)) {
-    Serial.println("BMS::toggleDischarging() - failed");
+    loggingStream.println("BMS::toggleDischarging() - failed");
     return;
   }
 
   this->_screen->setDischargingIsEnabled(isEnabled);
 
-  Serial.println("BMS::toggleDischarging() - Done");
+  loggingStream.println("BMS::toggleDischarging() - Done");
 }
 
 BMSState BMS::getState() {

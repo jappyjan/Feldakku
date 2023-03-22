@@ -9,6 +9,7 @@
 #include "error-bms.state.hpp"
 #include "buttons.hpp"
 #include "menu.state.hpp"
+#include "my_logger.hpp"
 
 HardwareSerial &BMSSerial = Serial1;
 HardwareSerial &BLESerial = Serial2;
@@ -46,10 +47,10 @@ inline void setupIO() {
 }
 
 void UiCode(void * parameter) {
-  Serial.print("UiCode() - Starting UI");
+  loggingStream.print("UiCode() - Starting UI");
   // print current core
-  Serial.print(" on core ");
-  Serial.println(xPortGetCoreID());
+  loggingStream.print(" on core ");
+  loggingStream.println(xPortGetCoreID());
 
   screen.begin();
 
@@ -61,7 +62,7 @@ void UiCode(void * parameter) {
 void setup() {
   Serial.begin(115200);
 
-  Serial.println("setup() - Starting UI");
+  loggingStream.println("setup() - Starting UI");
 
   xTaskCreatePinnedToCore(
       UiCode, /* Function to implement the task */
@@ -75,30 +76,30 @@ void setup() {
 
   delay(2000);
 
-  Serial.println("setup() - Starting BMS");
+  loggingStream.println("setup() - Starting BMS");
   BMSSerial.begin(9600, SERIAL_8N1, BMS_SERIAL_RX_PIN, BMS_SERIAL_TX_PIN);
   bms.begin();
 
-  Serial.println("setup() - Configuring BLE Serial");
+  loggingStream.println("setup() - Configuring BLE Serial");
   BLESerial.begin(9600, SERIAL_8N1, BLE_PIN_RX, BLE_PIN_TX);
 
-  Serial.println("setup() - Preparing IO");
+  loggingStream.println("setup() - Preparing IO");
   Buttons::begin();
   setupIO();
 
-  Serial.println("setup() - Starting State Machine");                                    
+  loggingStream.println("setup() - Starting State Machine");                                    
   stateMachine[AppState::MAIN_STATE] = mainState;
   stateMachine[AppState::ERROR_BMS_STATE] = errorBmsState;
   stateMachine[AppState::MENU_STATE] = menuState;
 
   stateMachine.toState(AppState::MAIN_STATE);
 
-  Serial.println("setup() - Scheduling Buttons::update()");
+  loggingStream.println("setup() - Scheduling Buttons::update()");
   scheduler.every(25, []() {
     Buttons::update();
   });
 
-  Serial.println("setup() - done");
+  loggingStream.println("setup() - done");
 }
 
 void loop() {

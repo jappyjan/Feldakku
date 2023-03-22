@@ -1,9 +1,10 @@
 #include "error-bms.state.hpp"
 #include "const.hpp"
 #include "buttons.hpp"
+#include "my_logger.hpp"
 
 void ErrorBmsState::enter(){
-    Serial.println("ErrorBmsState::enter() - Start");
+    loggingStream.println("ErrorBmsState::enter() - Start");
 
     this->_screen->openBMSErrorPopup(this->_bms->getState());
 
@@ -39,11 +40,11 @@ void ErrorBmsState::enter(){
         }
     });
 
-    Serial.println("ErrorBmsState::enter() - End");
+    loggingStream.println("ErrorBmsState::enter() - End");
 };
 
 void ErrorBmsState::leave() {
-    Serial.println("ErrorBmsState::leave() - Start");
+    loggingStream.println("ErrorBmsState::leave() - Start");
 
     Buttons::setOnButtonPressedCallback(nullptr);
 
@@ -52,5 +53,5 @@ void ErrorBmsState::leave() {
         this->_scheduler->removeTask(this->_bmsFetchTask);
     }
 
-    Serial.println("ErrorBmsState::leave() - End");
+    loggingStream.println("ErrorBmsState::leave() - End");
 };
