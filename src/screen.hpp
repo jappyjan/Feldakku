@@ -54,6 +54,7 @@ class Screen {
         void setUsbIsEnabled(bool usbIsEnabled);
         void setFourSOutputIsEnabled(bool fourSOutputIsEnabled);
         void setBLEIsActive(bool bleIsActive);
+        void setUSBUartIsActive(bool usbUartIsActive);
     
     private:
         float batteryVoltage;
@@ -78,6 +79,7 @@ class Screen {
         bool popupClosable;
         bool needsRedraw;
         bool bleIsActive;
+        bool usbUartIsActive;
 
         void initaliseScreen();
         void initVariables();

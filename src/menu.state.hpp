@@ -33,4 +33,7 @@ class MenuState: public BasicState {
 
         void bleBegin();
         void bleEnd();
+
+        void usbUartBegin();
+        void usbUartEnd();
 };
